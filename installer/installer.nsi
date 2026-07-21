@@ -14,7 +14,7 @@ SetCompressor /SOLID lzma
 !define APP_NAME     "GamingFlix Ubisoft Offline Tool"
 !define APP_SHORT    "GamingFlix Ubisoft Offline"
 !define APP_EXE      "GamingFlix-Ubisoft-Offline-Tool.exe"
-!define APP_VERSION  "1.1.0.0"
+!define APP_VERSION  "1.1.1.0"
 !define APP_PUBLISHER "GamingFlix"
 !define APP_URL      "https://gamingflix.space"
 !define APP_REPO     "https://github.com/davemaciel/gamingflix-ubisoft-offline-tool"

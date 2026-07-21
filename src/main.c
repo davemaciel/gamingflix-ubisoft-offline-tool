@@ -27,7 +27,7 @@
 #define RULE_NAME   "GamingFlix_Ubi_Offline"
 #define SITE_URL    "https://gamingflix.space"
 #define REPO_URL    "https://github.com/davemaciel/gamingflix-ubisoft-offline-tool"
-#define APP_VERSION "v1.1"
+#define APP_VERSION "v1.1.1"
 
 /* ----- Cores (GamingFlix: dark + vermelho) ----- */
 #define C_BG        RGB(0x0d, 0x0d, 0x12)
@@ -156,10 +156,13 @@ static BOOL fw_block(void)
         block_program(path);
     }
 
-    /* fecha a Ubisoft para que ela reabra ja bloqueada (offline) */
-    run_hidden("taskkill /F /IM UbisoftConnect.exe /IM upc.exe "
-               "/IM UbisoftGameLauncher.exe /IM UbisoftGameLauncher64.exe "
-               "/IM UplayWebCore.exe >nul 2>&1");
+    /*
+     * IMPORTANTE: NAO matamos a Ubisoft aqui.
+     * Os jogos da Ubisoft rodam ATRAVES da Ubisoft Connect; um taskkill /F
+     * fecharia o jogo junto (bug relatado). Com as regras de firewall ativas,
+     * a Ubisoft perde a conexao e entra em modo offline sozinha, sem derrubar
+     * o jogo. Se ela ainda nao estiver aberta, ja abre bloqueada (offline).
+     */
     return TRUE;
 }
 
@@ -363,7 +366,7 @@ static void paint(HWND hwnd)
     {
         const char *help = g_offline
             ? "Modo offline ativo. Pode abrir o jogo normalmente. Para voltar a atualizar/comprar na Ubisoft, desative aqui."
-            : "Nao precisa abrir o jogo antes: ative aqui e depois abra a Ubisoft/jogo normal. Bloqueia a Ubisoft Connect no Firewall do Windows pra sua conta nao cair quando outra pessoa entra online.";
+            : "Pode ativar ate com o jogo aberto (ele nao fecha). Bloqueia a Ubisoft Connect no Firewall do Windows e ela entra em offline sozinha, pra sua conta nao cair quando outra pessoa entra online.";
         RECT rh = {40, 394, W-40, 456};
         draw_text(dc, help, rh, g_fHelp, C_FAINT, DT_CENTER|DT_WORDBREAK);
     }
