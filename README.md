@@ -80,6 +80,20 @@ Precisa de **permissão de administrador** por um único motivo: criar regras de
 
 > 💡 Dentro do jogo pode aparecer *"Erro de serviço online"* / *"Not supported"* — **isso é normal** no modo offline. É só continuar e jogar.
 
+> ⚠️ **Importante (jogos que caem mesmo offline):** entre **online** na Ubisoft **uma vez** e ative o **modo offline nas configurações da Ubisoft Connect** *antes* de bloquear. Sem esse login prévio, a licença não fica em cache e o jogo pode **não abrir**.
+
+### 🎯 Bloquear também o EXE do jogo (avançado — igual ao FAB)
+
+Alguns títulos novos da Ubisoft (ex.: **AC Shadows / Resynced**) conectam **no nível do jogo**, então bloquear só o launcher pode não bastar. Nesses casos:
+
+1. Clique em **"+ Bloquear também o EXE do jogo (avançado)"**.
+2. Selecione o `.exe` do jogo (ex.: na pasta de instalação da Steam/Ubisoft).
+3. Ele entra na **mesma regra de firewall**, e **"Desativar modo offline"** remove tudo de uma vez.
+
+### 🔄 Como atualizar para uma nova versão
+
+Baixe o novo **Setup.exe** e rode por cima da versão antiga. **Não precisa desinstalar** — o instalador **fecha o app sozinho** e substitui os arquivos. (A versão portátil: feche o app e substitua o `.exe`.)
+
 ### ⚠️ "O Windows protegeu o seu computador" (SmartScreen)
 
 Como o app é novo e **não tem certificado de assinatura pago**, o Windows pode mostrar uma tela azul de aviso. **Isso não é vírus** — é só o app ainda não ter reputação acumulada. Clique em **"Mais informações"** e depois em **"Executar assim mesmo"**. Se preferir, **compile você mesmo** a partir do código (veja abaixo) e rode seu próprio binário.
@@ -114,7 +128,7 @@ makensis installer/installer.nsi
 
 **Vou ser banido?** Não. O app não modifica o jogo nem a Ubisoft; só controla a conexão de rede local dela, um recurso normal do Windows.
 
-**Funciona com qual jogo?** Qualquer jogo que usa Ubisoft Connect. O modo offline vale pra Ubisoft toda.
+**Funciona com qual jogo?** Qualquer jogo que usa Ubisoft Connect. O modo offline vale pra Ubisoft toda. Para jogos novos que conectam sozinhos (ex.: AC Shadows/Resynced), use também o botão **"Bloquear também o EXE do jogo"**.
 
 **Meu antivírus reclamou.** É um `.exe` novo e sem assinatura paga — o SmartScreen/antivírus às vezes alerta por precaução. Como o código é aberto, você pode auditar e/ou compilar você mesmo.
 

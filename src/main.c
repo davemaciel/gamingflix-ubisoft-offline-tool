@@ -16,6 +16,7 @@
  */
 
 #include <windows.h>
+#include <commdlg.h>
 #include <stdio.h>
 #include <string.h>
 #include "logo_data.h"   /* logo GamingFlix embutido (BGRA premultiplicado) */
@@ -27,7 +28,7 @@
 #define RULE_NAME   "GamingFlix_Ubi_Offline"
 #define SITE_URL    "https://gamingflix.space"
 #define REPO_URL    "https://github.com/davemaciel/gamingflix-ubisoft-offline-tool"
-#define APP_VERSION "v1.1.1"
+#define APP_VERSION "v1.2"
 
 /* ----- Cores (GamingFlix: dark + vermelho) ----- */
 #define C_BG        RGB(0x0d, 0x0d, 0x12)
@@ -46,7 +47,7 @@
 
 /* ----- Layout ----- */
 #define WIN_W 430
-#define WIN_H 560
+#define WIN_H 600
 
 /* ----- Estado ----- */
 static BOOL  g_offline = FALSE;   /* TRUE = modo offline ativo (Ubisoft bloqueada) */
@@ -54,7 +55,7 @@ static BOOL  g_busy    = FALSE;
 static HFONT g_fBrand, g_fKick, g_fPill, g_fSub, g_fBtn, g_fHelp, g_fChip, g_fFoot, g_fTag;
 
 /* Retangulos clicaveis (preenchidos no paint) */
-static RECT r_primary, r_chipHow, r_chipGit, r_close, r_min;
+static RECT r_primary, r_chipHow, r_chipGit, r_chipGame, r_close, r_min;
 
 /* ============================================================
  *  NUCLEO: acoes no Firewall do Windows (o que o app realmente faz)
@@ -183,6 +184,39 @@ static BOOL fw_is_active(void)
     _snprintf(cmd, sizeof(cmd),
         "netsh advfirewall firewall show rule name=\"%s\" >nul 2>&1", RULE_NAME);
     return run_hidden(cmd) == 0; /* 0 = encontrou a regra */
+}
+
+/*
+ * AVANCADO: bloqueia tambem o EXE do proprio jogo (igual o FAB faz).
+ * Alguns titulos novos da Ubisoft (ex.: AC Shadows/Resynced) conectam no nivel
+ * do jogo, entao bloquear so o launcher pode nao bastar. O usuario escolhe o
+ * .exe do jogo e ele entra na MESMA regra de firewall (RULE_NAME), assim
+ * "Desativar modo offline" remove tudo de uma vez.
+ */
+static void block_picked_game(HWND hwnd)
+{
+    char file[MAX_PATH] = "";
+    OPENFILENAMEA ofn; ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner   = hwnd;
+    ofn.lpstrFilter = "Executavel do jogo (*.exe)\0*.exe\0Todos os arquivos\0*.*\0";
+    ofn.lpstrFile   = file;
+    ofn.nMaxFile    = sizeof(file);
+    ofn.lpstrTitle  = "Selecione o .exe do jogo para bloquear tambem";
+    ofn.Flags       = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
+
+    if (GetOpenFileNameA(&ofn)) {
+        block_program(file);
+        g_offline = fw_is_active();
+        InvalidateRect(hwnd, NULL, FALSE);
+        MessageBoxA(hwnd,
+            "Jogo adicionado ao bloqueio do firewall.\n\n"
+            "IMPORTANTE: o jogo so abre offline se voce ja tiver entrado ONLINE\n"
+            "pelo menos uma vez antes E ativado o modo offline nas configuracoes\n"
+            "da Ubisoft Connect. Caso contrario ele nao valida a licenca e nao abre.\n\n"
+            "Para liberar tudo depois, clique em \"Desativar modo offline\".",
+            APP_TITLE, MB_ICONINFORMATION);
+    }
 }
 
 /* ============================================================
@@ -366,14 +400,20 @@ static void paint(HWND hwnd)
     {
         const char *help = g_offline
             ? "Modo offline ativo. Pode abrir o jogo normalmente. Para voltar a atualizar/comprar na Ubisoft, desative aqui."
-            : "Pode ativar ate com o jogo aberto (ele nao fecha). Bloqueia a Ubisoft Connect no Firewall do Windows e ela entra em offline sozinha, pra sua conta nao cair quando outra pessoa entra online.";
-        RECT rh = {40, 394, W-40, 456};
+            : "Dica: entre ONLINE na Ubisoft uma vez e ative o modo offline nas config. dela ANTES. Depois bloqueie aqui pra sua conta nao cair quando outra pessoa logar online.";
+        RECT rh = {40, 392, W-40, 446};
         draw_text(dc, help, rh, g_fHelp, C_FAINT, DT_CENTER|DT_WORDBREAK);
     }
 
+    /* ---- botao avancado: bloquear tambem o jogo ---- */
+    SetRect(&r_chipGame, 24, 452, W-24, 490);
+    fill_round(dc, r_chipGame, 11, C_CARD2, C_LINE);
+    draw_text(dc, "+ Bloquear tambem o EXE do jogo (avancado)",
+              r_chipGame, g_fChip, C_AMBER_Hi, DT_CENTER|DT_VCENTER|DT_SINGLELINE);
+
     /* ---- chips ---- */
-    SetRect(&r_chipHow, 24, 466, W/2-5, 506);
-    SetRect(&r_chipGit, W/2+5, 466, W-24, 506);
+    SetRect(&r_chipHow, 24, 498, W/2-5, 534);
+    SetRect(&r_chipGit, W/2+5, 498, W-24, 534);
     fill_round(dc, r_chipHow, 11, C_CARD2, C_LINE);
     fill_round(dc, r_chipGit, 11, C_CARD2, C_LINE);
     draw_text(dc, "Como funciona", r_chipHow, g_fChip, C_MUTED, DT_CENTER|DT_VCENTER|DT_SINGLELINE);
@@ -382,11 +422,11 @@ static void paint(HWND hwnd)
     /* ---- footer ---- */
     {
         HPEN pn = CreatePen(PS_SOLID, 1, C_LINE); HGDIOBJ op = SelectObject(dc, pn);
-        MoveToEx(dc, 22, 524, NULL); LineTo(dc, W-22, 524);
+        MoveToEx(dc, 22, 552, NULL); LineTo(dc, W-22, 552);
         SelectObject(dc, op); DeleteObject(pn);
-        RECT lf = {24, 530, W/2, 552};
+        RECT lf = {24, 558, W/2, 580};
         draw_text(dc, APP_VERSION " . gamingflix.space", lf, g_fFoot, C_FAINT, DT_LEFT|DT_VCENTER|DT_SINGLELINE);
-        RECT rf = {W/2, 530, W-24, 552};
+        RECT rf = {W/2, 558, W-24, 580};
         draw_text(dc, "Codigo aberto", rf, g_fFoot, C_GREEN_Hi, DT_RIGHT|DT_VCENTER|DT_SINGLELINE);
     }
 
@@ -434,6 +474,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         if (in_rect(r_close, p)) { PostMessage(hwnd, WM_CLOSE, 0, 0); return 0; }
         if (in_rect(r_min, p))   { ShowWindow(hwnd, SW_MINIMIZE); return 0; }
         if (in_rect(r_primary, p)) { do_toggle(hwnd); return 0; }
+        if (in_rect(r_chipGame, p)) { block_picked_game(hwnd); return 0; }
         if (in_rect(r_chipHow, p)) { ShellExecuteA(hwnd,"open",REPO_URL"#como-funciona",NULL,NULL,SW_SHOW); return 0; }
         if (in_rect(r_chipGit, p)) { ShellExecuteA(hwnd,"open",REPO_URL,NULL,NULL,SW_SHOW); return 0; }
         return 0;
@@ -451,7 +492,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
     case WM_SETCURSOR: {
         POINT p; GetCursorPos(&p); ScreenToClient(hwnd, &p);
         if (in_rect(r_primary,p)||in_rect(r_chipHow,p)||in_rect(r_chipGit,p)||
-            in_rect(r_close,p)||in_rect(r_min,p)) {
+            in_rect(r_chipGame,p)||in_rect(r_close,p)||in_rect(r_min,p)) {
             SetCursor(LoadCursor(NULL, IDC_HAND)); return TRUE;
         }
         break;

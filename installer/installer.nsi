@@ -14,7 +14,7 @@ SetCompressor /SOLID lzma
 !define APP_NAME     "GamingFlix Ubisoft Offline Tool"
 !define APP_SHORT    "GamingFlix Ubisoft Offline"
 !define APP_EXE      "GamingFlix-Ubisoft-Offline-Tool.exe"
-!define APP_VERSION  "1.1.1.0"
+!define APP_VERSION  "1.2.0.0"
 !define APP_PUBLISHER "GamingFlix"
 !define APP_URL      "https://gamingflix.space"
 !define APP_REPO     "https://github.com/davemaciel/gamingflix-ubisoft-offline-tool"
@@ -80,6 +80,12 @@ Section "Aplicativo (obrigatorio)" SecApp
   SectionIn RO
   SetOutPath "$INSTDIR"
 
+  ; Fecha o app se ja estiver aberto (necessario para atualizar por cima,
+  ; pois o Windows trava o .exe em uso). Nao mexe no jogo, so no proprio app.
+  DetailPrint "Fechando o aplicativo se estiver aberto..."
+  nsExec::Exec 'taskkill /F /IM "${APP_EXE}"'
+  Sleep 800
+
   DetailPrint "Copiando o aplicativo..."
   File "..\dist\${APP_EXE}"
   File "TERMOS.txt"
@@ -114,6 +120,10 @@ SectionEnd
 ;  Desinstalacao
 ; ============================================================
 Section "Uninstall"
+  ; fecha o app se estiver aberto
+  nsExec::Exec 'taskkill /F /IM "${APP_EXE}"'
+  Sleep 500
+
   ; remove regras de firewall que o app tenha criado (limpeza)
   DetailPrint "Removendo regras de firewall (se existirem)..."
   nsExec::Exec 'netsh advfirewall firewall delete rule name="GamingFlix_Ubi_Offline"'
