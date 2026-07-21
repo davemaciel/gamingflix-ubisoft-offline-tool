@@ -17,7 +17,7 @@ echo ">> compilando app..."
 mkdir -p dist
 "$CC" src/main.c build_res.o -o "dist/$OUT" \
   -mwindows -O2 -s \
-  -ladvapi32 -lshell32 -lgdi32 -luser32 -lkernel32 -static
+  -ladvapi32 -lshell32 -lgdi32 -luser32 -lkernel32 -lmsimg32 -static
 
 rm -f build_res.o
 echo ">> pronto: dist/$OUT"

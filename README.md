@@ -62,12 +62,27 @@ Precisa de **permissão de administrador** por um único motivo: criar regras de
 
 ## 📥 Como usar
 
-1. Baixe o `GamingFlix-Ubisoft-Offline-Tool.exe` na aba **[Releases](../../releases)**.
-2. Abra (o Windows pode pedir permissão de administrador → **Sim**).
-3. Clique em **Ativar modo offline** antes de jogar.
-4. Quando quiser voltar ao normal (atualizar/comprar na Ubisoft), clique em **Desativar modo offline**.
+### Opção 1 — Instalador (recomendado)
+
+1. Baixe o **`GamingFlix-Ubisoft-Offline-Setup.exe`** na aba **[Releases](../../releases)**.
+2. Abra o instalador. Um assistente vai te guiar: **boas-vindas → aceitar os termos → escolher a pasta → instalar**. Ele cria atalhos no **Menu Iniciar** e na **Área de Trabalho**.
+3. Ao terminar, marque *"Abrir agora"* ou use o atalho criado.
+
+### Opção 2 — Versão portátil (sem instalar)
+
+1. Baixe o **`GamingFlix-Ubisoft-Offline-Tool.exe`** na aba **[Releases](../../releases)** e abra direto.
+
+### Usando o app
+
+1. O Windows pode pedir permissão de administrador → **Sim** (necessário só pro firewall).
+2. Clique em **Ativar modo offline**. **Não precisa abrir o jogo antes** — ative aqui e depois abra a Ubisoft/jogo normalmente (já entra offline).
+3. Quando quiser voltar ao normal (atualizar/comprar na Ubisoft), clique em **Desativar modo offline**.
 
 > 💡 Dentro do jogo pode aparecer *"Erro de serviço online"* / *"Not supported"* — **isso é normal** no modo offline. É só continuar e jogar.
+
+### ⚠️ "O Windows protegeu o seu computador" (SmartScreen)
+
+Como o app é novo e **não tem certificado de assinatura pago**, o Windows pode mostrar uma tela azul de aviso. **Isso não é vírus** — é só o app ainda não ter reputação acumulada. Clique em **"Mais informações"** e depois em **"Executar assim mesmo"**. Se preferir, **compile você mesmo** a partir do código (veja abaixo) e rode seu próprio binário.
 
 ---
 
@@ -82,6 +97,14 @@ sudo apt install mingw-w64
 ```
 
 O binário gerado é **exatamente** o que está aqui no repositório. Sem etapas escondidas.
+
+Para gerar também o instalador (opcional, requer **NSIS**):
+
+```bash
+sudo apt install nsis
+makensis installer/installer.nsi
+# saída: dist/GamingFlix-Ubisoft-Offline-Setup.exe
+```
 
 ---
 

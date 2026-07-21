@@ -1,0 +1,38 @@
+GAMINGFLIX UBISOFT OFFLINE TOOL - TERMOS DE USO E TRANSPARENCIA
+
+Ao instalar, voce concorda com os termos abaixo. Leia com calma:
+
+1. O QUE ESTE APP FAZ
+   - Coloca a Ubisoft Connect em MODO OFFLINE criando regras no Firewall
+     do Windows para os executaveis da Ubisoft (comando oficial "netsh
+     advfirewall"). Isso evita que sua conta compartilhada seja derrubada
+     quando outra pessoa entra online na mesma conta.
+   - Um clique ATIVA, outro clique DESATIVA (remove as regras).
+
+2. O QUE ESTE APP **NAO** FAZ
+   - NAO desativa o Windows Update.
+   - NAO coleta, envia ou armazena dados pessoais (zero telemetria).
+   - NAO instala outros programas nem modifica o sistema alem das regras
+     de firewall descritas acima.
+   - NAO altera arquivos de jogos nem da Ubisoft.
+
+3. CODIGO ABERTO
+   - Todo o codigo-fonte e publico e pode ser auditado e compilado por
+     voce mesmo em:
+     https://github.com/davemaciel/gamingflix-ubisoft-offline-tool
+
+4. PERMISSAO DE ADMINISTRADOR
+   - O app pede permissao de administrador apenas porque mexer no Firewall
+     do Windows exige isso. Nenhuma outra acao privilegiada e realizada.
+
+5. AVISO DO WINDOWS (SmartScreen / Defender)
+   - Por ser um app novo e sem certificado pago de assinatura, o Windows
+     pode mostrar um aviso azul ("O Windows protegeu o seu computador").
+     Isso NAO significa virus: e so o app ainda nao ter reputacao.
+     Clique em "Mais informacoes" e depois em "Executar assim mesmo".
+
+6. GARANTIA
+   - Software fornecido "no estado em que se encontra", sob licenca MIT,
+     sem garantias. Use por sua conta e risco.
+
+GamingFlix - gamingflix.space

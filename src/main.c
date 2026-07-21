@@ -18,13 +18,16 @@
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
+#include "logo_data.h"   /* logo GamingFlix embutido (BGRA premultiplicado) */
+
+#define IDI_APPICON 101
 
 /* ----- Identidade / constantes ----- */
 #define APP_TITLE   "GamingFlix Ubisoft Offline Tool"
 #define RULE_NAME   "GamingFlix_Ubi_Offline"
 #define SITE_URL    "https://gamingflix.space"
 #define REPO_URL    "https://github.com/davemaciel/gamingflix-ubisoft-offline-tool"
-#define APP_VERSION "v1.0"
+#define APP_VERSION "v1.1"
 
 /* ----- Cores (GamingFlix: dark + vermelho) ----- */
 #define C_BG        RGB(0x0d, 0x0d, 0x12)
@@ -217,6 +220,32 @@ static void draw_text(HDC dc, const char *s, RECT rc, HFONT f, COLORREF col, UIN
     SelectObject(dc, of);
 }
 
+/* Desenha o logo GamingFlix (embutido) com transparencia, escalado para dx/dy. */
+static void draw_logo(HDC dc, int dx, int dy, int dw, int dh)
+{
+    BITMAPINFO bi; ZeroMemory(&bi, sizeof(bi));
+    bi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+    bi.bmiHeader.biWidth       = LOGO_W;
+    bi.bmiHeader.biHeight      = -LOGO_H;   /* top-down */
+    bi.bmiHeader.biPlanes      = 1;
+    bi.bmiHeader.biBitCount    = 32;
+    bi.bmiHeader.biCompression = BI_RGB;
+
+    void *bits = NULL;
+    HDC mdc = CreateCompatibleDC(dc);
+    HBITMAP dib = CreateDIBSection(dc, &bi, DIB_RGB_COLORS, &bits, NULL, 0);
+    if (dib && bits) {
+        memcpy(bits, LOGO_BGRA, sizeof(LOGO_BGRA));
+        HGDIOBJ ob = SelectObject(mdc, dib);
+        BLENDFUNCTION bf = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
+        SetStretchBltMode(dc, HALFTONE);
+        AlphaBlend(dc, dx, dy, dw, dh, mdc, 0, 0, LOGO_W, LOGO_H, bf);
+        SelectObject(mdc, ob);
+    }
+    if (dib) DeleteObject(dib);
+    DeleteDC(mdc);
+}
+
 static void paint(HWND hwnd)
 {
     PAINTSTRUCT ps; HDC wdc = BeginPaint(hwnd, &ps);
@@ -236,16 +265,10 @@ static void paint(HWND hwnd)
     COLORREF accentHi = g_offline ? C_GREEN_Hi : C_AMBER_Hi;
 
     /* ---- title bar ---- */
-    RECT logo = {18, 15, 48, 45};
-    fill_round(dc, logo, 9, C_RED, 0);
-    /* triangulo "play" branco */
+    /* logo GamingFlix real (mantendo proporcao ~55x64) */
     {
-        POINT tri[3] = {{29,23},{29,37},{39,30}};
-        HBRUSH wb = CreateSolidBrush(RGB(255,255,255));
-        HGDIOBJ ob = SelectObject(dc, wb);
-        HPEN np = (HPEN)GetStockObject(NULL_PEN); HGDIOBJ op = SelectObject(dc, np);
-        Polygon(dc, tri, 3);
-        SelectObject(dc, ob); SelectObject(dc, op); DeleteObject(wb);
+        int lh = 30, lw = LOGO_W * lh / LOGO_H;  /* ~26px */
+        draw_logo(dc, 18, 15, lw, lh);
     }
     RECT brand = {56, 15, 300, 45};
     draw_text(dc, "GAMINGFLIX", brand, g_fBrand, C_TEXT, DT_LEFT|DT_VCENTER|DT_SINGLELINE);
@@ -339,8 +362,8 @@ static void paint(HWND hwnd)
     /* ---- help ---- */
     {
         const char *help = g_offline
-            ? "Modo offline ativo. Para voltar a atualizar/comprar na Ubisoft, desative aqui."
-            : "Bloqueia a Ubisoft Connect no Firewall do Windows pra sua conta nao ser derrubada quando outra pessoa entra online.";
+            ? "Modo offline ativo. Pode abrir o jogo normalmente. Para voltar a atualizar/comprar na Ubisoft, desative aqui."
+            : "Nao precisa abrir o jogo antes: ative aqui e depois abra a Ubisoft/jogo normal. Bloqueia a Ubisoft Connect no Firewall do Windows pra sua conta nao cair quando outra pessoa entra online.";
         RECT rh = {40, 394, W-40, 456};
         draw_text(dc, help, rh, g_fHelp, C_FAINT, DT_CENTER|DT_WORDBREAK);
     }
@@ -446,7 +469,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow)
     wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wc.lpszClassName = "GFXUbiOffline";
-    wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hIcon         = LoadIconA(hInst, MAKEINTRESOURCEA(IDI_APPICON));
     RegisterClassA(&wc);
 
     int sw = GetSystemMetrics(SM_CXSCREEN), sh = GetSystemMetrics(SM_CYSCREEN);
@@ -461,6 +484,16 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow)
     {
         HRGN rgn = CreateRoundRectRgn(0, 0, WIN_W+1, WIN_H+1, 18, 18);
         SetWindowRgn(hwnd, rgn, TRUE);
+    }
+
+    /* icone da janela (barra de tarefas + alt-tab) */
+    {
+        HICON hBig = (HICON)LoadImageA(hInst, MAKEINTRESOURCEA(IDI_APPICON),
+                        IMAGE_ICON, GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), 0);
+        HICON hSm  = (HICON)LoadImageA(hInst, MAKEINTRESOURCEA(IDI_APPICON),
+                        IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0);
+        if (hBig) SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hBig);
+        if (hSm)  SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hSm);
     }
 
     ShowWindow(hwnd, nShow);
