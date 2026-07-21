@@ -1,0 +1,8 @@
+# Build artifacts
+build_res.o
+*.o
+*.obj
+
+# Manter o binário oficial fora do git (vai só nas Releases)
+dist/
+*.exe
